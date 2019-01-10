@@ -1,6 +1,6 @@
 #!/usr/bin/python
 #coding=utf-8
-import sys, requests, json, csv
+import sys, requests, json, csv, traceback
 from datetime import datetime
 
 def getDailyReport(date):
@@ -23,7 +23,6 @@ def getDailyReport(date):
 def main():
     date = datetime.now().strftime("%Y%m%d")
     content = getDailyReport(date)
-    print content
     header = content['fields5']
     header = [h.encode('utf-8') for h in header]
     data = content['data5']
