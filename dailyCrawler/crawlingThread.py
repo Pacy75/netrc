@@ -16,8 +16,11 @@ class CrawlingThread(threading.Thread):
 
     def addRow(self, row):
         try:
-            self.writer.writerow([row.get('t'), row.get('c'), row.get('z'), row.get('tv'), row.get('v'), row.get('a'), row.get('f'), row.get('b'), row.get('g')])
+            dd = datetime.utcnow()
+            time_ns = str(dd.strftime('%s')) + str(dd.microsecond).zfill(6) + '000'
+            self.writer.writerow([time_ns, row.get('t'), row.get('c'), row.get('z'), row.get('tv'), row.get('v'), row.get('a'), row.get('f'), row.get('b'), row.get('g')])
         except Exception as e:
+            print e
             r = json.dumps(row)
             print 'Got exception at when addRow: ' + str(r)
 

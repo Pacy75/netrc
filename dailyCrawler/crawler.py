@@ -1,9 +1,16 @@
-import sys, requests, json, time, threading, os, pause
+import sys
+import requests
+import json
+import time
+import threading
+import os
+import pause
 from crawlingThread import CrawlingThread
 from datetime import datetime, timedelta
-
-DEV = '0'
-PROD = '1' 
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    "--run", '-r', help="TEST or PROD. If not set default is TEST", type=str)
 
 def getDayTradingStocks():
     url = 'http://www.twse.com.tw/exchangeReport/TWTB4U'
@@ -16,6 +23,7 @@ def getDayTradingStocks():
         print e
         return []
 
+
 def getDayTradingStocksFromBackup():
     dirname = os.path.dirname(__file__)
     fname = dirname + '/../intraDayTradingList/List0.txt'
@@ -23,8 +31,9 @@ def getDayTradingStocksFromBackup():
         return []
     with open(fname) as f:
         lines = f.readlines()
-        content = [x.strip() for x in lines] 
+        content = [x.strip() for x in lines]
     return content
+
 
 def split(arr, size):
     arrs = []
@@ -35,11 +44,13 @@ def split(arr, size):
     arrs.append(arr)
     return arrs
 
-def main(opt):
-    print "(" + opt + ")Started at: " + datetime.now().strftime("%I:%M:%S.%f %p")
+
+def main():
+    args = parser.parse_args()
+    print "Started at: " + datetime.now().strftime("%I:%M:%S.%f %p")
     now = datetime.now()
-    endTime = now + timedelta(seconds=11) # for DEV
-    if opt == PROD:
+    endTime = now + timedelta(seconds=11)  # for TEST
+    if args.run == 'PROD':
         endTime = now.replace(hour=13, minute=30, second=10, microsecond=0)
 
     print "Set end time at: " + endTime.strftime("%I:%M:%S.%f %p")
@@ -51,23 +62,23 @@ def main(opt):
         date = content['date']
         candidates = [d[0] for d in content['data']]
     print date + " Total " + str(len(candidates)) + " stocks."
-    
+
     if [] == candidates:
         print "Stop because no candidate found."
         return
 
     candidates = split(candidates, 100)
     print "Divide to " + str(len(candidates)) + " lists."
-    
-    if not os.path.exists(date):
-        os.mkdir(date, 0755);
 
-    if opt == PROD:
+    if not os.path.exists(date):
+        os.mkdir(date, 0755)
+
+    if args.run == 'PROD':
         startTime = now.replace(hour=9, minute=0, second=0, microsecond=0)
         print "Set start time at: " + startTime.strftime("%I:%M:%S.%f %p")
         if datetime.now() < startTime:
             pause.until(startTime)
-    
+
     threads = []
     start_time = time.time()
     for cList in candidates:
@@ -84,9 +95,6 @@ def main(opt):
     print "Total elapsed time: " + str(elapsed_time)
     print "Finished at: " + datetime.now().strftime("%I:%M:%S.%f %p")
 
+
 if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        opt = sys.argv[1]
-    else:
-        opt = DEV
-    main(opt)
+    main()
